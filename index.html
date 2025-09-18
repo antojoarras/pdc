@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Validador de Pi</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #1e1e2f;
+      color: #fff;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: #00ffe0;
+    }
+
+    textarea {
+      width: 100%;
+      max-width: 800px;
+      height: 200px;
+      background: #2a2a40;
+      color: #00ff90;
+      border: none;
+      padding: 1rem;
+      font-size: 16px;
+      border-radius: 10px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.7rem 2rem;
+      font-size: 16px;
+      border: none;
+      background: #00ffe0;
+      color: #1e1e2f;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #00c2b2;
+    }
+
+    #resultado {
+      margin-top: 2rem;
+      font-size: 18px;
+      color: #ffef80;
+      text-align: center;
+    }
+
+    .error {
+      color: #ff5c5c;
+    }
+
+    .success {
+      color: #8fff8f;
+    }
+  </style>
+</head>
+<body>
+  <h1>Validador de Decimales de π</h1>
+  <textarea id="piInput" placeholder="Pega aquí tus decimales de pi... (puede incluir 3.)"></textarea><br>
+  <button onclick="verificarPi()">Verificar</button>
+
+  <div id="resultado"></div>
+
+  <script>
+    // Generar pi con la fórmula de Machin (usando arctangentes)
+    function arctan(x, digits) {
+      let result = 0n;
+      let term;
+      let numerator = 10n ** BigInt(digits + 10);
+      let xpow = numerator / BigInt(x);
+      let x2 = BigInt(x) * BigInt(x);
+      let sign = 1n;
+      let k = 1n;
+
+      while (true) {
+        term = xpow / k;
+        if (term === 0n) break;
+        result += sign * term;
+        sign *= -1n;
+        xpow = xpow / x2;
+        k += 2n;
+      }
+
+      return result;
+    }
+
+    function generarPi(digits) {
+      // Machin: π = 16 arctan(1/5) - 4 arctan(1/239)
+      let pi = 16n * arctan(5, digits) - 4n * arctan(239, digits);
+      let piStr = pi.toString();
+      piStr = piStr.slice(0, -10); // Quitar extra precisión
+      return piStr[0] + "." + piStr.slice(1);
+    }
+
+    function verificarPi() {
+      const input = document.getElementById("piInput").value.trim().replace(/^3\./, "");
+      const resultado = document.getElementById("resultado");
+
+      if (input.length < 4 || input.length > 100000) {
+        resultado.innerHTML = "❗ Debes ingresar entre 4 y 100000 decimales.";
+        resultado.className = "error";
+        return;
+      }
+
+      const digitosNecesarios = input.length + 2; // extra para seguridad
+      const piCorrecto = generarPi(digitosNecesarios).replace(".", "").slice(1); // quitar 3.
+
+      for (let i = 0; i < input.length; i++) {
+        if (input[i] !== piCorrecto[i]) {
+          resultado.innerHTML = `❌ Error en el decimal ${i + 1}: escribiste <b>${input[i]}</b> y debería ser <b>${piCorrecto[i]}</b>.`;
+          resultado.className = "error";
+          return;
+        }
+      }
+
+      resultado.innerHTML = `✅ ¡Correcto! Has introducido ${input.length} decimales válidos de π.`;
+      resultado.className = "success";
+    }
+  </script>
+</body>
+</html>
